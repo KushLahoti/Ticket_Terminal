@@ -22,19 +22,19 @@ export const getNowPlayingMovies = async (req, res) => {
 //API to add a new show to the data base
 export const addShow = async (req, res) => {
     try {
-        const { movieID, showsInput, showPrice } = req.body
+        const { movieId, showsInput, showPrice } = req.body
 
-        let movie = await Movie.findById(movieID)
+        let movie = await Movie.findById(movieId)
 
         if (!movie) {
             //Fetch movie details ans credits from TMDB API
             const [movieDetailsResponse, movieCreditsResponse] = await Promise.all([
-                axios.get(`https://api.themoviedb.org/3/movie/${movieID}`, {
+                axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
                     headers: {
                         Authorization: `Bearer ${process.env.TMDB_API_KEY}`
                     }
                 }),
-                axios.get(`https://api.themoviedb.org/3/movie/${movieID}/credits`, {
+                axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
                     headers: {
                         Authorization: `Bearer ${process.env.TMDB_API_KEY}`
                     }
@@ -44,7 +44,7 @@ export const addShow = async (req, res) => {
             const movieCreditsData = movieCreditsResponse.data;
 
             const movieDetails = {
-                _id: movieID,
+                _id: movieId,
                 title: movieApiData.title,
                 overview: movieApiData.overview,
                 poster_path: movieApiData.poster_path,
