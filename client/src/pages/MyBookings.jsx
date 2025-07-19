@@ -67,11 +67,11 @@ const MyBookings = () => {
                             <p className="text-sm text-gray-300">
                                 <span className="font-medium text-white">Seat Number: </span>{item.bookedSeats.join(', ')}
                             </p>
-                            {!item.isPaid && (
+                            {!item.isPaid &&
                                 <Link to={item.paymentLink} className="mt-2 text-sm bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1 rounded-full transition cursor-pointer">
                                     Pay Now
                                 </Link>
-                            )}
+                            }
                         </div>
                     </div>
                 ))}
