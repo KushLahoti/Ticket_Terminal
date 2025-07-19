@@ -1,10 +1,14 @@
-import { dummyShowsData } from '../assets/assets.js';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from './MovieCard.jsx';
+import { useAppContext } from '../context/AppContext.jsx';
 
 const FeatureSection = () => {
+
     const navigate = useNavigate();
+
+    const { shows } = useAppContext();
+
     const [favourites, setFavourites] = useState([]);
     useEffect(() => {
         const fav = JSON.parse(localStorage.getItem('favourites')) || [];
@@ -33,13 +37,13 @@ const FeatureSection = () => {
             </div>
 
             <div className='flex flex-wrap justify-center gap-8 mt-8'>
-                {dummyShowsData.slice(0, 4).map((show) => {
+                {shows.slice(0, 4).map((show) => {
                     const isFav = favourites.some(m => m._id === show._id);
                     return (
                         <MovieCard
                             key={show._id}
                             movie={show}
-                            isFavourite={isFav}
+                            isFav={isFav}
                             onToggleFavourite={handleToggleFavourite}
                         />
                     );

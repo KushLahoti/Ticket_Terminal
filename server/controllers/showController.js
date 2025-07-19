@@ -96,7 +96,16 @@ export const getShows = async (req, res) => {
 
         //filter unique shows
         const uniqueShows = new Set(shows.map(show => show.movie))
-        console.log(shows);
+        const seen = new Set();
+        const uniqueMovies = [];
+
+        for (const show of shows) {
+            const movieId = show.movie._id.toString();
+            if (!seen.has(movieId)) {
+                seen.add(movieId);
+                uniqueMovies.push(show.movie);  // only movie object
+            }
+        }
         res.json({ success: true, shows: Array.from(uniqueShows) })
     } catch (error) {
         console.log(error)

@@ -3,12 +3,15 @@ import { Search, Menu, X, TicketPlus } from 'lucide-react';
 import { useState } from 'react';
 import logo from "../assets/logo.png"
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react';
+import { useAppContext } from '../context/AppContext';
 
 const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const { user } = useUser();
     const { openSignIn } = useClerk();
     const navigate = useNavigate();
+
+    const { favouriteMovies } = useAppContext();
 
     return (
         <nav className="absolute top-0 left-0 w-full text-white z-50">
@@ -17,7 +20,7 @@ const Navbar = () => {
                     <img src={logo} alt="Logo" className="w-14 h-14" />
                 </Link>
                 <div className="hidden md:flex gap-2 px-8 py-1 bg-black/40 backdrop-blur-sm rounded-full">
-                    {['Home', 'Movies', 'Theatres', 'Releases', 'Favourites'].map((item, i) => (
+                    {['Home', 'Movies', 'Theatres', 'Releases', ...(favouriteMovies.length > 0 ? ['Favourites'] : [])].map((item, i) => (
                         <Link
                             key={i}
                             to={(item == "Home") ? '/' : `/${item.toLowerCase()}`}
@@ -65,7 +68,7 @@ const Navbar = () => {
                     <Link to="/movies" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Movies</Link>
                     <Link to="/theatres" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Theatres</Link>
                     <Link to="/releases" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Releases</Link>
-                    <Link to="/favourites" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Favourites</Link>
+                    {favouriteMovies.length > 0 && <Link to="/favourites" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Favourites</Link>}
                 </div>
             )}
 

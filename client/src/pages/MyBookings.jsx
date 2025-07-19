@@ -1,22 +1,37 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import Loading from '../components/Loading';
-import { dummyBookingData } from '../assets/assets';
 import timeFormat from '../lib/timeFormat';
 import { dateFormat } from '../lib/dateFormat';
+import { useAppContext } from '../context/AppContext';
 
 const MyBookings = () => {
+
+    const { axios, getToken, user, image_base_url } = useAppContext();
+
     const currency = import.meta.env.VIT_CURRENCY || '₹';
     const [bookings, setBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const getMyBookings = async () => {
-        setBookings(dummyBookingData);
-        setIsLoading(false);
+        try {
+            const { data } = await axios.get('/api/user/bookings', {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            })
+            if (data.success) {
+                setBookings(data.bookings)
+            }
+        } catch (error) {
+            console.log(error)
+        }
+        setIsLoading(false)
     };
 
     useEffect(() => {
-        getMyBookings();
-    }, []);
+        if (user) {
+            getMyBookings();
+        }
+    }, [user]);
 
     return !isLoading ? (
         <div className="min-h-screen bg-gradient-to-b from-[#0d0d0d] via-[#0f0c0c] to-[#0d0d0d] pt-24 px-4 md:px-16 pb-10">
@@ -31,7 +46,7 @@ const MyBookings = () => {
 
                         <div className="flex items-center gap-4">
                             <img
-                                src={item.show.movie.poster_path}
+                                src={image_base_url + item.show.movie.poster_path}
                                 alt={item.show.movie.title}
                                 className="w-24 h-32 object-cover rounded-lg"
                             />
