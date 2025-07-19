@@ -1,5 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import Loading from '../../components/Loading';
-import { dummyDashboardData } from '../../assets/assets';
 import {
     ChartLineIcon,
     CircleDollarSignIcon,
@@ -10,8 +10,13 @@ import {
 import React, { useEffect, useState } from 'react';
 import Title from '../../components/admin/Title';
 import { dateFormat } from '../../lib/dateFormat';
+import { useAppContext } from '../../context/AppContext';
+import toast from 'react-hot-toast';
 
 const DashBoard = () => {
+
+    const { axios, getToken, user, image_base_url } = useAppContext();
+
     const currency = import.meta.env.VITE_CURRENCY;
 
     const [dashBoardData, setDashBoardData] = useState({
@@ -47,13 +52,26 @@ const DashBoard = () => {
     ];
 
     const fetchDashBoardData = async () => {
-        setDashBoardData(dummyDashboardData);
-        setLoading(false);
+        try {
+            const { data } = await axios.get('/api/admin/dashboard', {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            })
+            if (data.success) {
+                setDashBoardData(data.dashboardData)
+                setLoading(false)
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error('Error fetching dashboard data: ', error)
+        }
     };
 
     useEffect(() => {
-        fetchDashBoardData();
-    }, []);
+        if (user) {
+            fetchDashBoardData();
+        }
+    }, [user]);
 
     return !loading ? (
         <>
@@ -86,7 +104,7 @@ const DashBoard = () => {
                         className="bg-white/5 border border-white/10 rounded-xl overflow-hidden shadow hover:shadow-lg hover:-translate-y-1 transition duration-300"
                     >
                         <img
-                            src={show.movie.poster_path}
+                            src={image_base_url + show.movie.poster_path}
                             alt={show.movie.title}
                             className="w-full h-100 object-cover"
                         />
