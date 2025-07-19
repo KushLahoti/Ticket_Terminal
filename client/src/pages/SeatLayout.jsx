@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import Loading from '../components/Loading';
 import { ArrowRightIcon, ClockIcon } from 'lucide-react';
 import isoTimeFormat from '../lib/isoTimeFormat';
@@ -17,7 +17,7 @@ const SeatLayout = () => {
     const [show, setShow] = useState(null);
     const [occupiedSeats, setOccupiedSeats] = useState([])
 
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     const { axios, getToken, user } = useAppContext();
 
@@ -84,8 +84,7 @@ const SeatLayout = () => {
                 headers: { Authorization: `Bearer ${await getToken()}` }
             })
             if (data.success) {
-                toast.success(data.message)
-                navigate('/myBookings')
+                window.location.href = data.url;
             } else {
                 toast.error(data.message)
             }
