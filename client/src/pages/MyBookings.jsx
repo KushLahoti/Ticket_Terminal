@@ -4,6 +4,7 @@ import Loading from '../components/Loading';
 import timeFormat from '../lib/timeFormat';
 import { dateFormat } from '../lib/dateFormat';
 import { useAppContext } from '../context/AppContext';
+import { Link } from 'react-router-dom';
 
 const MyBookings = () => {
 
@@ -67,9 +68,9 @@ const MyBookings = () => {
                                 <span className="font-medium text-white">Seat Number: </span>{item.bookedSeats.join(', ')}
                             </p>
                             {!item.isPaid && (
-                                <button className="mt-2 text-sm bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1 rounded-full transition cursor-pointer">
+                                <Link to={item.paymentLink} className="mt-2 text-sm bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1 rounded-full transition cursor-pointer">
                                     Pay Now
-                                </button>
+                                </Link>
                             )}
                         </div>
                     </div>
