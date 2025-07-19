@@ -1,11 +1,16 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import Loading from '../../components/Loading';
-import { dummyShowsData } from '../../assets/assets';
 import React, { useEffect, useState } from 'react';
 import Title from '../../components/admin/Title';
 import { CheckIcon, DeleteIcon, StarIcon } from 'lucide-react';
 import { kConverter } from '../../lib/kConverter';
+import { useAppContext } from '../../context/AppContext';
+import toast from 'react-hot-toast';
 
 const AddShows = () => {
+
+    const { axios, getToken, user, image_base_url } = useAppContext();
+
     const currency = import.meta.env.VITE_CURRENCY;
     const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
     const [selectedMovie, setSelectedMovie] = useState(null);
@@ -13,14 +18,31 @@ const AddShows = () => {
     const [dateTimeInput, setDateTimeInput] = useState("");
     const [showPrice, setShowPrice] = useState("");
 
+    const [addingShow, setAddingShow] = useState(false);
+
     const fetchNowPlayingMovies = async () => {
-        setNowPlayingMovies(dummyShowsData);
+        try {
+            const { data } = await axios.get('/api/show/now-playing', {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            })
+            if (data.success) {
+                setNowPlayingMovies(data.movies);
+            }
+        } catch (error) {
+            console.error('Error Fetching Movies: ', error);
+        }
     };
 
     const handleDateTimeAdd = () => {
-        if (!dateTimeInput) return;
+        if (!dateTimeInput) {
+            toast.error("Please select both date and time!");
+            return;
+        }
         const [date, time] = dateTimeInput.split("T");
-        if (!date || !time) return;
+        if (!date || !time) {
+            toast.error("Invalid date/time format!");
+            return;
+        }
         setDateTimeSelection(prev => {
             const times = prev[date] || [];
             if (!times.includes(time)) {
@@ -41,9 +63,43 @@ const AddShows = () => {
         });
     };
 
+    const handleSubmit = async () => {
+        console.log('clicked');
+        try {
+            setAddingShow(true);
+            if (!selectedMovie || Object.keys(dateTimeSelection).length === 0 || !showPrice) {
+                return toast('Missing Required Fields');
+            }
+            const showsInput = Object.entries(dateTimeSelection).map(([date, time]) => ({ date, time }));
+            const payload = {
+                movieId: selectedMovie,
+                showsInput,
+                showPrice: Number(showPrice)
+            }
+            const { data } = await axios.post('/api/show/add', payload, {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            })
+
+            if (data.success) {
+                toast.success(data.message)
+                setSelectedMovie(null)
+                setDateTimeSelection({})
+                setShowPrice("")
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            console.error("Submission error: ", error);
+            toast.error('An error occured. Please try again')
+        }
+        setAddingShow(false);
+    }
+
     useEffect(() => {
-        fetchNowPlayingMovies();
-    }, []);
+        if (user) {
+            fetchNowPlayingMovies();
+        }
+    }, [user]);
 
     return nowPlayingMovies.length > 0 ? (
         <>
@@ -60,7 +116,7 @@ const AddShows = () => {
                             className={`w-40 cursor-pointer transition duration-300 rounded-lg overflow-hidden bg-white/5 hover:opacity-90 hover:-translate-y-1 ${selectedMovie === movie.id ? 'ring-2 ring-accent' : ''
                                 }`}
                         >
-                            <img src={movie.poster_path} alt="" className="w-full h-60 object-cover" />
+                            <img src={image_base_url + movie.poster_path} alt="" className="w-full h-60 object-cover" />
                             <div className="p-2 space-y-1">
                                 <p className="font-medium truncate">{movie.title}</p>
                                 <p className="text-sm text-gray-400">{movie.release_date}</p>
@@ -110,7 +166,7 @@ const AddShows = () => {
                     />
                     <button
                         onClick={handleDateTimeAdd}
-                        className="bg-accent text-white px-3 py-1.5 rounded hover:opacity-90 transition"
+                        className="bg-white/10 text-white px-3 py-1.5 rounded hover:bg-accent hover:text-black transition duration-200 border border-white/20"
                     >
                         Add Time
                     </button>
@@ -148,7 +204,11 @@ const AddShows = () => {
 
             {/* Final Submit Button */}
             <button
-                className="mt-10 bg-accent text-white font-semibold px-6 py-2 rounded hover:opacity-90 transition cursor-pointer"
+                onClick={handleSubmit} disabled={addingShow}
+                className={`mt-10 font-semibold px-6 py-2 rounded transition duration-200 cursor-pointer 
+  ${addingShow
+                        ? 'bg-gray-500 text-white'
+                        : 'bg-white/10 text-white hover:bg-accent hover:text-black border border-white/20'}`}
             >
                 Add Show
             </button>

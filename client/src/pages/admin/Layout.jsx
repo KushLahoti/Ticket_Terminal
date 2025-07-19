@@ -1,10 +1,20 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect } from 'react';
 import AdminNavbar from '../../components/admin/AdminNavbar';
 import AdminSideBar from '../../components/admin/AdminSideBar';
 import { Outlet } from 'react-router-dom';
+import { useAppContext } from '../../context/AppContext';
+import Loading from '../../components/Loading';
 
 const Layout = () => {
-    return (
+
+    const { isAdmin, fetchIsAdmin } = useAppContext();
+
+    useEffect(() => {
+        fetchIsAdmin();
+    }, [])
+
+    return isAdmin ? (
         <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] text-white flex flex-col">
             <AdminNavbar />
             <div className="flex flex-1 overflow-hidden">
@@ -16,7 +26,9 @@ const Layout = () => {
                 </main>
             </div>
         </div>
-    );
+    ) : (
+        <Loading />
+    )
 };
 
 export default Layout;
