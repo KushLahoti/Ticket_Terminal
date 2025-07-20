@@ -37,8 +37,6 @@ export const stripeWebhooks = async (request, response) => {
                 data: { bookingId }
             });
 
-            console.log("✅ Payment confirmed. Event sent to Inngest for bookingId:", bookingId);
-
         } catch (err) {
             console.error('Webhook processing error:', err);
             return response.status(500).send("Internal Server Error");

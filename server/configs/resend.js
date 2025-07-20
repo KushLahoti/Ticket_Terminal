@@ -5,8 +5,6 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const sendEmail = async ({ to, subject, body }) => {
     try {
         const { data, error } = await resend.emails.send({
-            // For now, we use Resend's test email address.
-            // You can change this later after verifying your own domain in Resend.
             from: 'Ticket Terminal App <onboarding@resend.dev>',
             to: to,
             subject: subject,
@@ -18,7 +16,6 @@ const sendEmail = async ({ to, subject, body }) => {
             return { success: false, error };
         }
 
-        console.log("Email sent successfully via Resend:", data);
         return { success: true, data };
 
     } catch (exception) {
