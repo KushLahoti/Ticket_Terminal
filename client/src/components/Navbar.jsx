@@ -20,7 +20,7 @@ const Navbar = () => {
                     <img src={logo} alt="Logo" className="w-14 h-14" />
                 </Link>
                 <div className="hidden md:flex gap-2 px-8 py-1 bg-black/40 backdrop-blur-sm rounded-full">
-                    {['Home', 'Movies', 'Theatres', 'Releases', ...(favouriteMovies.length > 0 ? ['Favourites'] : [])].map((item, i) => (
+                    {['Home', 'Movies', ...(favouriteMovies.length > 0 ? ['Favourites'] : [])].map((item, i) => (
                         <Link
                             key={i}
                             to={(item == "Home") ? '/' : `/${item.toLowerCase()}`}
@@ -66,8 +66,6 @@ const Navbar = () => {
                     </button>
                     <Link to="/" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Home</Link>
                     <Link to="/movies" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Movies</Link>
-                    <Link to="/theatres" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Theatres</Link>
-                    <Link to="/releases" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Releases</Link>
                     {favouriteMovies.length > 0 && <Link to="/favourites" className="hover:text-accent hover:scale-110 transition duration-200" onClick={() => setMenuOpen(false)}>Favourites</Link>}
                 </div>
             )}

@@ -35,7 +35,6 @@ const DateSelect = ({ dateTime, id }) => {
                                 <button
                                     key={date}
                                     onClick={() => {
-                                        console.log("Button Clicked! Date: ", date);
                                         setSelected(date);
                                     }}
                                     className={`flex flex-col items-center justify-center h-16 w-16 rounded-lg border transition duration-200 text-white cursor-pointer
