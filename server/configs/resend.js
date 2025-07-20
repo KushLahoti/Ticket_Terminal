@@ -7,7 +7,7 @@ const sendEmail = async ({ to, subject, body }) => {
         const { data, error } = await resend.emails.send({
             // For now, we use Resend's test email address.
             // You can change this later after verifying your own domain in Resend.
-            from: 'Movie Ticket App <onboarding@resend.dev>',
+            from: 'Ticket Terminal App <onboarding@resend.dev>',
             to: to,
             subject: subject,
             html: body,

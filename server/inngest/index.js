@@ -105,7 +105,7 @@ const sendBookingConfirmationEmail = inngest.createFunction(
 
         try {
             const response = await sendEmail({
-                to: booking.user.email,
+                to: "kushlahoti123@gmail.com",
                 subject: `Payment Confirmation: "${booking.show.movie.title}" booked!`,
                 body: `<p>Test email content</p>`,
             });
