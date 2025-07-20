@@ -82,6 +82,8 @@ const sendBookingConfirmationEmail = inngest.createFunction(
     async ({ event, step }) => {
         const { bookingId } = event.data
 
+        console.log("📨 Inngest function triggered for bookingId:", bookingId);
+
         const booking = await Booking.findById(bookingId).populate({
             path: 'show',
             populate: {
@@ -90,7 +92,14 @@ const sendBookingConfirmationEmail = inngest.createFunction(
             }
         }).populate('user')
 
-        await sendEmail({
+        console.log("✅ Booking data:", {
+            email: booking.user.email,
+            movie: booking.show.movie.title,
+            date: booking.show.showDateTime,
+            seats: booking.bookedSeats
+        });
+
+        const response = await sendEmail({
             to: booking.user.email,
             subject: `Payment Confirmation: "${booking.show.movie.title}" booked!`,
             body: `
@@ -137,6 +146,7 @@ const sendBookingConfirmationEmail = inngest.createFunction(
                 </body>
             `
         })
+        console.log("📬 Email sent! Response:", response);
     }
 )
 
