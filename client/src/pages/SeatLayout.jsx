@@ -59,7 +59,7 @@ const SeatLayout = () => {
                 key={seatId}
                 onClick={() => handleSeatClick(seatId)}
                 disabled={isOccupied}
-                className={`flex items-center justify-center h-6 w-6 md:h-7 md:w-7 rounded-md text-xs font-semibold border transition duration-200 ${seatClass}`}
+                className={`flex items-center justify-center h-6 w-6 md:h-7 md:w-7 rounded-md text-xs font-semibold border transition duration-200 ${seatClass} cursor-pointer`}
             >
                 <span className="text-[8px] md:text-xs">{seatId.substring(1)}</span>
             </button>
