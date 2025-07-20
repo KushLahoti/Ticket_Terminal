@@ -2,7 +2,7 @@ import { Inngest } from "inngest";
 import User from "../models/User.model.js";
 import Booking from "../models/Booking.model.js";
 import Show from "../models/Show.model.js";
-import sendEmail from "../configs/nodeMailer.js";
+import sendEmail from "../configs/resend.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "movie-ticket-booking" });
