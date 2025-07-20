@@ -133,8 +133,78 @@ const sendBookingConfirmationEmail = inngest.createFunction(
                 body: emailBody,
             });
         } catch (error) {
-            console.error("❌ Email sending failed:", error.message);
+            console.error("Email sending failed:", error.message);
         }
+    }
+)
+
+//Send new show notification via mail
+const sendNewShowNotifications = inngest.createFunction(
+    { id: 'send-new-show-notifications' },
+    { event: 'app/show.added' },
+    async ({ event }) => {
+        const { movieTitle } = event.data;
+        const users = await User.find({});
+
+        if (users.length === 0) {
+            console.log("No users found in the system. No notifications sent.");
+            return { status: "No users found" };
+        }
+
+        //using for each on each customer we can send email to every user
+        console.log(`Found ${users.length} total users. Attempting to send notifications...`);
+
+        const subject = ` 🎬 New Show Alert: ${movieTitle}`
+        const body = `
+                        <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+                    .container { max-width: 600px; margin: auto; background-color: #ffffff; }
+                    .header { background-color: #111827; padding: 24px; text-align: center; }
+                    .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+                    .content { padding: 32px; }
+                    .content h2 { color: #1f2937; margin-top: 0; }
+                    .content p { color: #4b5563; line-height: 1.6; }
+                    .cta-button { display: inline-block; background-color: #ef4444; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; }
+                    .footer { background-color: #f3f4f6; text-align: center; padding: 16px; font-size: 12px; color: #6b7280; }
+                </style>
+            </head>
+            <body>
+                <table class="container" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                        <td class="header">
+                            <h1>TicketTerminal</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content">
+                            <h2>Hi Kush,</h2>
+                            <p>Good news! New showtimes for a movie you might like, <strong>${movieTitle}</strong>, are now available for booking.</p>
+                            <p>Be the first to get your tickets and pick the best seats. Click the button below to see available times.</p>
+                            <br>
+                            <p>Enjoy the show!</p>
+                            <p>— The TicketTerminal Team</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="footer">
+                            © 2025 TicketTerminal. All rights reserved.
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `
+
+        await sendEmail({
+            to: "kushlahoti123@gmail.com",
+            subject,
+            body
+        })
+
+        return { message: 'Notification Sent' }
     }
 )
 
@@ -143,7 +213,8 @@ export const functions = [
     syncUserDeletion,
     syncUserUpdation,
     releaseSeatsAndDeleteBooking,
-    sendBookingConfirmationEmail
+    sendBookingConfirmationEmail,
+    sendNewShowNotifications
 ];
 
 
