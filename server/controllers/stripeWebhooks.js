@@ -14,38 +14,39 @@ export const stripeWebhooks = async (request, response) => {
         return response.status(400).send(`Webhook Error: ${error.message}`)
     }
 
-    try {
-        switch (event.type) {
-            case "payment_intent.succeeded": {
-                const paymentIntent = event.data.object;
-                const sessionList = await stripeInstance.checkout.sessions.list({
-                    payment_intent: paymentIntent.id
-                })
-                const session = sessionList.data[0]
-                const { bookingId } = session.metadata;
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object; // The session is directly available
+        const { bookingId } = session.metadata;
 
-                await Booking.findByIdAndUpdate(bookingId, {
-                    isPaid: true,
-                    paymentLink: ""
-                })
-
-                //Send Confirmation Email
-                await inngest.send({
-                    name: 'app/show.booked',
-                    data: { bookingId }
-                })
-
-                console.log("📤 Event sent to Inngest:", bookingId);
-
-                break;
-            }
-
-            default:
-                console.log('Unhandled Event type: ', event.type)
+        if (!bookingId) {
+            console.error("Webhook Error: bookingId not found in session metadata.");
+            // Return 200 to Stripe so it doesn't retry, but log the error.
+            return response.status(200).send("Error: Missing metadata.");
         }
-        response.json({ received: true })
-    } catch (err) {
-        console.log('Webhook Processing error: ', err)
-        response.status(500).send("Internal Server Error");
+
+        try {
+            // Update the booking in your database
+            await Booking.findByIdAndUpdate(bookingId, {
+                isPaid: true,
+                paymentLink: "" // Optional: clear the payment link
+            });
+
+            // Send the event to Inngest to trigger the email
+            await inngest.send({
+                name: 'app/show.booked',
+                data: { bookingId }
+            });
+
+            console.log("✅ Payment confirmed. Event sent to Inngest for bookingId:", bookingId);
+
+        } catch (err) {
+            console.error('Webhook processing error:', err);
+            return response.status(500).send("Internal Server Error");
+        }
+    } else {
+        console.log(`Unhandled event type: ${event.type}`);
     }
-}
+
+    // Acknowledge receipt of the event
+    response.json({ received: true });
+};
