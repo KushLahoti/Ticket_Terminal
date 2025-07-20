@@ -17,82 +17,58 @@ const checkSeatsAvailability = async (showId, selectedSeats) => {
     }
 }
 
+// Function with added debugging logs
 export const createBooking = async (req, res) => {
     try {
+        console.log("--- createBooking function started ---");
         const { userId } = req.auth();
         const { showId, selectedSeats } = req.body;
-        const { origin } = req.headers;
+        console.log(`Step 1: Data received for showId: ${showId}`);
 
-        //check if seat is available for the selected show
-        const isAvailable = await checkSeatsAvailability(showId, selectedSeats)
-
+        const isAvailable = await checkSeatsAvailability(showId, selectedSeats);
         if (!isAvailable) {
+            console.error("Error: Seats not available.");
             return res.json({ success: false, message: "Selected Seats are not available." });
         }
+        console.log("Step 2: Seat availability checked successfully.");
 
-        //get the show detail 
         const showData = await Show.findById(showId).populate('movie');
+        console.log("Step 3: Show data fetched.");
 
-        //create a new booking
         const booking = await Booking.create({
             user: userId,
             show: showId,
             amount: showData.showPrice * selectedSeats.length,
             bookedSeats: selectedSeats
-        })
+        });
+        console.log(`Step 4: Booking created in DB with ID: ${booking._id}`);
 
-        selectedSeats.map((seat) => {
+        selectedSeats.forEach((seat) => {
             showData.occupiedSeats[seat] = userId;
-        })
+        });
 
-        showData.markModified('occupiedSeats')
-
+        showData.markModified('occupiedSeats');
         await showData.save();
+        console.log("Step 5: Show occupied seats updated.");
 
-        //Stripe Gateway Initialize
-        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
-
-        //Creatingline items for stripe
-        const line_items = [{
-            price_data: {
-                currency: 'usd',
-                product_data: {
-                    name: showData.movie.title
-                },
-                unit_amount: Math.floor(booking.amount) * 100,
-            },
-            quantity: 1
-        }]
-
-        const session = await stripeInstance.checkout.sessions.create({
-            success_url: `${origin}/loading/myBookings`,
-            cancel_url: `${origin}/myBookings`,
-            line_items: line_items,
-            mode: 'payment',
-            metadata: {
-                bookingId: booking._id.toString()
-            },
-            expires_at: Math.floor(Date.now() / 1000) + 30 * 60, //Expires in 30 mins
-        })
-
-        booking.paymentLink = session.url
-        await booking.save()
-
-        // Run Inngest Scheduler Funtion to check payment status after 10 minutes
+        console.log("Step 6: Attempting to send 'app/show.booked' event to Inngest...");
         await inngest.send({
-            name: 'app/checkpayment',
+            name: 'app/show.booked',
             data: {
-                bookingId: booking._id.toString()
+                bookingId: booking._id
             }
-        })
+        });
+        console.log("Step 7: Inngest event sent successfully!");
 
-        res.json({ success: true, url: session.url })
+        res.json({ success: true, message: "Booked Successfully" });
 
     } catch (error) {
-        console.log(error.message);
-        res.json({ success: false, message: error.message });
+        // This will now catch and log any error that occurs
+        console.error("--- CRITICAL ERROR in createBooking catch block ---");
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
     }
-}
+};
 
 export const getOccupiedSeats = async (req, res) => {
     try {
