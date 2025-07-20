@@ -79,10 +79,8 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
 const sendBookingConfirmationEmail = inngest.createFunction(
     { id: 'send-booking-confirmation-email' },
     { event: 'app/show.booked' },
-    async ({ event, step }) => {
+    async ({ event }) => {
         const { bookingId } = event.data
-
-        console.log("📨 Inngest function triggered for bookingId:", bookingId);
 
         const booking = await Booking.findById(bookingId).populate({
             path: 'show',
@@ -92,25 +90,48 @@ const sendBookingConfirmationEmail = inngest.createFunction(
             }
         }).populate('user')
 
-        console.log("✅ Booking data:", {
-            email: booking.user.email,
-            movie: booking.show.movie.title,
-            date: booking.show.showDateTime,
-            seats: booking.bookedSeats
-        });
+        const emailBody = `
+            <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                    <tr>
+                    <td style="background-color: #111827; padding: 20px; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0;">TicketTerminal</h2>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td style="padding: 30px;">
+                        <h3 style="margin-top: 0;">Hi ${booking.user.name},</h3>
+                        <p>Thank you for your booking! We're excited to confirm your ticket for:</p>
 
-        console.log("🔐 SMTP_USER:", process.env.SMTP_USER);
-        console.log("🔐 SMTP_PASS starts with:", process.env.SMTP_PASS?.substring(0, 10));
-        console.log("🔐 SENDER_EMAIL:", process.env.SENDER_EMAIL);
+                        <p style="font-size: 18px; font-weight: bold;">🎬 ${booking.show.movie.title}</p>
+                        <p>
+                            <strong>Date:</strong> ${new Date(booking.show.showDateTime).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' })}<br/>
+                            <strong>Time:</strong> ${new Date(booking.show.showDateTime).toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata' })}<br/>
+                            <strong>Seats:</strong> ${booking.bookedSeats.join(', ')}<br/>
+                        </p>
+                        
+                        <p>Your payment has been successfully processed. Please arrive 15 minutes early to ensure a smooth experience.</p>
+                        <hr style="margin: 20px 0;" />
+                        <p>If you have any questions or need to cancel your booking, feel free to contact us.</p>
+                        <p>Enjoy the show! 🍿</p>
+                        <p>— The TicketTerminal Team</p>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td style="background-color: #f3f4f6; text-align: center; padding: 15px; font-size: 12px; color: #6b7280;">
+                        © 2025 TicketTerminal. All rights reserved.
+                    </td>
+                    </tr>
+                </table>
+            </body>
+        `;
 
         try {
             const response = await sendEmail({
-                to: "kushlahoti123@gmail.com",
+                to: "kushlahoti123@gmail.com", // Hardcoded for testing
                 subject: `Payment Confirmation: "${booking.show.movie.title}" booked!`,
-                body: `<p>Test email content</p>`,
+                body: emailBody,
             });
-
-            console.log("✅ Email sent! SMTP response:", response);
         } catch (error) {
             console.error("❌ Email sending failed:", error.message);
         }
@@ -125,51 +146,4 @@ export const functions = [
     sendBookingConfirmationEmail
 ];
 
-// const response = await sendEmail({
-//             to: booking.user.email,
-//             subject: `Payment Confirmation: "${booking.show.movie.title}" booked!`,
-//             body: `
-//                 <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0;">
-//                     <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
-//                         <tr>
-//                         <td style="background-color: #111827; padding: 20px; text-align: center;">
-//                             <h2 style="color: #ffffff; margin: 0;">TicketTerminal</h2>
-//                         </td>
-//                         </tr>
-//                         <tr>
-//                         <td style="padding: 30px;">
-//                             <h3 style="margin-top: 0;">Hi ${booking.user.name},</h3>
-//                             <p>Thank you for your booking! We're excited to confirm your ticket for:</p>
 
-//                             <p style="font-size: 18px; font-weight: bold;">🎬 ${booking.show.movie.title}</p>
-//                             <p>
-//                                 <strong>Date:</strong> ${new Date(booking.show.showDateTime).toLocaleDateString('en-US', {
-//                 timeZone: 'Asia/Kolkata'
-//             })}<br/>
-//                                 <strong>Time:</strong>${new Date(booking.show.showDateTime).toLocaleTimeString('en-US', {
-//                 timeZone: 'Asia/Kolkata'
-//             })}<br/>
-//                                 <strong>Seats:</strong> ${booking.bookedSeats.join(', ')}<br/>
-//             <p/>
-                
-//                             <p>Your payment has been successfully processed. Please arrive 15 minutes early to ensure a smooth experience.</p>
-
-//                             <hr style="margin: 20px 0;" />
-
-//                             <p>If you have any questions or need to cancel your booking, feel free to contact us.</p>
-
-//                             <p>Enjoy the show! 🍿</p>
-
-//                             <p>— The TicketTerminal Team</p>
-//                         </td>
-//                         </tr>
-//                         <tr>
-//                         <td style="background-color: #f3f4f6; text-align: center; padding: 15px; font-size: 12px; color: #6b7280;">
-//                             © 2025 TicketTerminal. All rights reserved.
-//                         </td>
-//                         </tr>
-//                     </table>
-//                 </body>
-//             `
-//         })
-//         console.log("📬 Email sent! Response:", response);
